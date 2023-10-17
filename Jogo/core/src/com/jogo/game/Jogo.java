@@ -12,6 +12,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Random;
 
@@ -39,18 +40,20 @@ public class Jogo extends ApplicationAdapter {
 	private BitmapFont bitmap;
 	private int power;
 	private boolean gameover;
+	private Temporizador temp;
+	private Calendar tempoAtual;
 	
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
-		img = new Texture("fundo.png");
+		img = new Texture("fundo.jpg");
 		tCharacter = new Texture("personagem.png");
 		character = new Sprite(tCharacter);
-		tObstacle = new Texture("enemy.png");
+		tObstacle = new Texture("inimigo.png");
 		obstacles = new Array<Rectangle>();
 		posX = 100;
 		posY = 100;
-		velocity = 10;
+		velocity = 6;
 		frequenciaObstaculo = 0;
 		
 		power = 3;
@@ -65,6 +68,7 @@ public class Jogo extends ApplicationAdapter {
 		
 		gameover = false;
 		
+		temp = new Temporizador();
 	}
 
 	@Override
@@ -79,11 +83,38 @@ public class Jogo extends ApplicationAdapter {
 		batch.draw(tCharacter, posX, posY);
 		moveChar();
 		
-		for (Rectangle obstacle : obstacles) {
-			batch.draw(tObstacle, obstacle.x, obstacle.y);
-		}
 				
-		bitmap.draw(batch, "Power: " + power, Gdx.graphics.getWidth() - 150, Gdx.graphics.getHeight() - 20);
+		if (!gameover) {
+			for (Rectangle obstacle : obstacles) {
+				batch.draw(tObstacle, obstacle.x, obstacle.y);
+			}
+			bitmap.draw(
+					batch, "Vidas: " + power,
+					20,
+					Gdx.graphics.getHeight() - 20
+					);
+			bitmap.draw(batch, temp.getTempo(), Gdx.graphics.getWidth() - 160, Gdx.graphics.getHeight() - 20);
+		} else {
+			bitmap.draw(
+					batch, "GAME OVER!",
+					Gdx.graphics.getWidth() / 2 - 75,
+					Gdx.graphics.getHeight() /2 + 10
+					);
+			
+			bitmap.draw(batch, temp.getTempoMorte(), Gdx.graphics.getWidth() - 160, Gdx.graphics.getHeight() - 20);
+			
+			posX = 9999999;
+			posY = 9999999;
+			
+		if ( Gdx.input.isKeyPressed(Input.Keys.ENTER) ) {
+			gameover = false;
+			posX = 0;
+			posY = 0;
+			power = 3;
+			tempoAtual = Calendar.getInstance();
+			temp.setTempo(tempoAtual.getTimeInMillis());
+		}
+		}
 		batch.end();
 	}
 	
