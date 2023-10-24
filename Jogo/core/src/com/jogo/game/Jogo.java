@@ -44,6 +44,8 @@ public class Jogo extends ApplicationAdapter {
 	private Calendar tempoAtual;
 	private int frequenciaAtual = 777777777;
 	private int frequenciaAntiga = 777777778;
+	private float velocidadeAtual = 10;
+	private float velocidadeAntiga = 9;
 	
 	@Override
 	public void create () {
@@ -115,6 +117,10 @@ public class Jogo extends ApplicationAdapter {
 			power = 3;
 			tempoAtual = Calendar.getInstance();
 			temp.setTempo(tempoAtual.getTimeInMillis());
+			velocidadeAtual = 10;
+			velocidadeAntiga = 9;
+			frequenciaAtual = 777777777;
+			frequenciaAntiga= 777777778;
 		}
 		}
 		batch.end();
@@ -128,22 +134,22 @@ public class Jogo extends ApplicationAdapter {
 	}
 	
 	public void moveChar() {
-		if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
+		if (Gdx.input.isKeyPressed(Input.Keys.UP) || Gdx.input.isKeyPressed(Input.Keys.W)) {
 			if (posY < Gdx.graphics.getHeight() - character.getHeight()) {
 				posY += velocity;
 			}
 		}
-		if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
+		if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || Gdx.input.isKeyPressed(Input.Keys.S)) {
 			if (posY > 0) {
 				posY -= velocity;
 			}
 		}
-		if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+		if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Gdx.input.isKeyPressed(Input.Keys.D)) {
 			if (posX < Gdx.graphics.getWidth() - character.getWidth() ) {
 				posX += velocity;
 			}
 		}
-		if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+		if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || Gdx.input.isKeyPressed(Input.Keys.A)) {
 			if (posX  > 0) {
 				posX -= velocity;
 			}
@@ -164,7 +170,7 @@ public class Jogo extends ApplicationAdapter {
 		
 		for(Iterator<Rectangle> iter = obstacles.iterator(); iter.hasNext();) {
 			Rectangle obstacle = iter.next();
-			obstacle.x -= 10;
+			obstacle.x -= velocidadeGeracaoObstaculo(tempo);
 			
 			if (collide(obstacle.x, obstacle.y, obstacle.height, obstacle.width, posX, posY, character.getWidth(), character.getHeight() ) && !gameover ) {
 				iter.remove();
@@ -191,17 +197,28 @@ public class Jogo extends ApplicationAdapter {
 		if (tempo > 15 && tempo < 45) {
 			if(frequenciaAtual < frequenciaAntiga) {
 				frequenciaAntiga = frequenciaAtual;
-				frequenciaAtual -= 50000;
+				frequenciaAtual -= 75000;
 				System.out.println(frequenciaAtual);
 			}
 		}else if (tempo > 45 && tempo < 90) {
 			if(frequenciaAtual < frequenciaAntiga) {
 				frequenciaAntiga = frequenciaAtual;
-				frequenciaAtual -= 75000;
+				frequenciaAtual -= 90000;
 				System.out.println(frequenciaAtual);
 			}
 		}
 		return frequenciaAtual;
+	}
+	
+	private float velocidadeGeracaoObstaculo (long tempo) {
+		if (tempo > 10 && tempo < 50) {
+			if (velocidadeAtual > velocidadeAntiga) {
+				velocidadeAntiga = velocidadeAtual;
+				velocidadeAtual += 0.005;
+				System.out.println(velocidadeAtual);
+			}
+		}
+		return velocidadeAtual;
 	}
 	
 }
