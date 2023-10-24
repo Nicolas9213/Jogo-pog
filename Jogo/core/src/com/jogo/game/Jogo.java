@@ -42,6 +42,8 @@ public class Jogo extends ApplicationAdapter {
 	private boolean gameover;
 	private Temporizador temp;
 	private Calendar tempoAtual;
+	private int frequenciaAtual = 777777777;
+	private int frequenciaAntiga = 777777778;
 	
 	@Override
 	public void create () {
@@ -74,7 +76,6 @@ public class Jogo extends ApplicationAdapter {
 	@Override
 	public void render () {
 		
-		this.moveObstacles();
 		this.moveChar();
 		
 		ScreenUtils.clear(1, 0, 0, 1);
@@ -85,6 +86,7 @@ public class Jogo extends ApplicationAdapter {
 		
 				
 		if (!gameover) {
+			this.moveObstacles(temp.getTempo()/1000);
 			for (Rectangle obstacle : obstacles) {
 				batch.draw(tObstacle, obstacle.x, obstacle.y);
 			}
@@ -93,7 +95,7 @@ public class Jogo extends ApplicationAdapter {
 					20,
 					Gdx.graphics.getHeight() - 20
 					);
-			bitmap.draw(batch, temp.getTempo(), Gdx.graphics.getWidth() - 160, Gdx.graphics.getHeight() - 20);
+			bitmap.draw(batch, "Tempo: " + temp.getTempo()/1000, Gdx.graphics.getWidth() - 160, Gdx.graphics.getHeight() - 20);
 		} else {
 			bitmap.draw(
 					batch, "GAME OVER!",
@@ -154,8 +156,8 @@ public class Jogo extends ApplicationAdapter {
 		frequenciaObstaculo = TimeUtils.nanoTime();
 	}
 	
-	private void moveObstacles() {
-		if(TimeUtils.nanoTime() - frequenciaObstaculo > 777777777) {
+	private void moveObstacles(long tempo) {
+		if(TimeUtils.nanoTime() - frequenciaObstaculo > frequenciaGeracaoObstaculo(tempo)) {
 			this.spawnObstacle();
 		}
 			
@@ -183,6 +185,23 @@ public class Jogo extends ApplicationAdapter {
 			return true;
 		}
 		return false;
+	}
+	
+	private int frequenciaGeracaoObstaculo (long tempo) {
+		if (tempo > 15 && tempo < 45) {
+			if(frequenciaAtual < frequenciaAntiga) {
+				frequenciaAntiga = frequenciaAtual;
+				frequenciaAtual -= 50000;
+				System.out.println(frequenciaAtual);
+			}
+		}else if (tempo > 45 && tempo < 90) {
+			if(frequenciaAtual < frequenciaAntiga) {
+				frequenciaAntiga = frequenciaAtual;
+				frequenciaAtual -= 75000;
+				System.out.println(frequenciaAtual);
+			}
+		}
+		return frequenciaAtual;
 	}
 	
 }
