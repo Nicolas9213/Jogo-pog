@@ -8,13 +8,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
-import java.util.Random;
 
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
@@ -46,6 +40,11 @@ public class Jogo extends ApplicationAdapter {
 	private int frequenciaAntiga = 777777778;
 	private float velocidadeAtual = 10;
 	private float velocidadeAntiga = 9;
+	private long tempoAuxilio = -5010;
+	private int contador = 0;
+	private int contadorSh = 0;
+	private boolean shieldAct = false;
+	private long tempoAuxilioSh = -5010;
 	
 	@Override
 	public void create () {
@@ -57,8 +56,8 @@ public class Jogo extends ApplicationAdapter {
 		obstacles = new Array<Rectangle>();
 		posX = 100;
 		posY = 100;
-		velocity = 6;
-		frequenciaObstaculo = 0;
+		velocity = 12;
+		frequenciaObstaculo = 10;
 		
 		power = 3;
 		
@@ -78,17 +77,15 @@ public class Jogo extends ApplicationAdapter {
 	@Override
 	public void render () {
 		
-		this.moveChar();
-		
 		ScreenUtils.clear(1, 0, 0, 1);
 		batch.begin();
 		batch.draw(img, 0, 0);	
 		batch.draw(tCharacter, posX, posY);
-		moveChar();
-		
 				
 		if (!gameover) {
+			this.moveChar();
 			this.moveObstacles(temp.getTempo()/1000);
+			this.shield(temp.getTempo()/1000);
 			for (Rectangle obstacle : obstacles) {
 				batch.draw(tObstacle, obstacle.x, obstacle.y);
 			}
@@ -121,6 +118,8 @@ public class Jogo extends ApplicationAdapter {
 			velocidadeAntiga = 9;
 			frequenciaAtual = 777777777;
 			frequenciaAntiga= 777777778;
+			tempoAuxilio = -5010;
+			tempoAuxilioSh = -5010;
 		}
 		}
 		batch.end();
@@ -162,19 +161,52 @@ public class Jogo extends ApplicationAdapter {
 		frequenciaObstaculo = TimeUtils.nanoTime();
 	}
 	
+	private void shield (long tempo) {
+		if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || tempo - tempoAuxilioSh >= -5 && tempo - tempoAuxilioSh <= 0) {
+			if (contadorSh == 0) {
+				tCharacter = new Texture("escudo.png");
+				tempoAuxilioSh = tempo + 5;
+				contadorSh++;
+				shieldAct = true;
+				
+			}
+	
+		}else {
+			tCharacter = new Texture("personagem.png");
+			shieldAct = false;
+			if (tempo - tempoAuxilioSh >= 30) {
+				contadorSh = 0;
+			}
+		}
+	}
 	private void moveObstacles(long tempo) {
 		if(TimeUtils.nanoTime() - frequenciaObstaculo > frequenciaGeracaoObstaculo(tempo)) {
 			this.spawnObstacle();
 		}
-			
 		
 		for(Iterator<Rectangle> iter = obstacles.iterator(); iter.hasNext();) {
 			Rectangle obstacle = iter.next();
-			obstacle.x -= velocidadeGeracaoObstaculo(tempo);
+			if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) || tempo - tempoAuxilio >= -5 && tempo - tempoAuxilio <= 0) {
+				if (contador == 0) {
+					tempoAuxilio = tempo + 5;
+					contador++;
+				}
+				obstacle.x -= 10;
+			}else {
+				obstacle.x -= velocidadeGeracaoObstaculo(tempo);
+				if (tempo - tempoAuxilio >= 10) {
+					contador = 0;
+					System.out.println("Passou");
+				}
+				System.out.println("TempoAuxilio: " + tempoAuxilio);
+				System.out.println("Tempo: " + tempo);
+			}
 			
 			if (collide(obstacle.x, obstacle.y, obstacle.height, obstacle.width, posX, posY, character.getWidth(), character.getHeight() ) && !gameover ) {
 				iter.remove();
-				power--;
+				if (!shieldAct) {
+					power--;
+				}
 				if (power <= 0) {
 					gameover = true;
 				}
@@ -198,20 +230,18 @@ public class Jogo extends ApplicationAdapter {
 			if(frequenciaAtual < frequenciaAntiga) {
 				frequenciaAntiga = frequenciaAtual;
 				frequenciaAtual -= 75000;
-				System.out.println(frequenciaAtual);
 			}
 		}else if (tempo > 45 && tempo < 90) {
 			if(frequenciaAtual < frequenciaAntiga) {
 				frequenciaAntiga = frequenciaAtual;
 				frequenciaAtual -= 90000;
-				System.out.println(frequenciaAtual);
 			}
 		}
 		return frequenciaAtual;
 	}
 	
 	private float velocidadeGeracaoObstaculo (long tempo) {
-		if (tempo > 10 && tempo < 50) {
+		if (tempo >= 10 && tempo <= 50) {
 			if (velocidadeAtual > velocidadeAntiga) {
 				velocidadeAntiga = velocidadeAtual;
 				velocidadeAtual += 0.005;
@@ -220,5 +250,4 @@ public class Jogo extends ApplicationAdapter {
 		}
 		return velocidadeAtual;
 	}
-	
 }
